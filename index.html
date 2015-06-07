@@ -5,36 +5,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/react.js"></script>
     <script type="text/javascript" src="JSMiBody.js"></script>
     <script type="text/javascript">
-    function load() {
-        var drop = document.getElementById('drop');
 
-        drop.ondragover = function(e) {
-            e.preventDefault();
-            this.classList.add('over');
-        };
-
-        drop.ondragout = drop.ondragleave = drop.ondragexit = function(e) {
-            this.classList.remove('over');
-        };
-
-        drop.ondrop = function(e) {
-            e.preventDefault();
-            this.classList.remove('over');
-
-            var dt = e.dataTransfer;
-            var files = dt.files;
-            var file = files[0];
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                var arrayBuffer = reader.result;
-                var intbuffer = new Uint8Array(arrayBuffer);
-                var file = window.jsMiBody.jsMiBodyFile;
-                var data = new file(intbuffer)
-            }
-            reader.readAsArrayBuffer(file);
-
-        };
-    }
     </script>
     <style type="text/css">
     #drop {
@@ -50,21 +21,95 @@
     </style>
 </head>
 
-<body onload="load()">
+<body>
     <p>Drag here</p>
     <div id="drop"></div>
     <p id="output"></p>
     <script type="text/jsx">
-        var CommentBox = React.createClass({ 
-        	render: function() { return (
-			        <div className="commentBox">
-			            Hello, world! I am a CommentBox.
-			        </div>
-        		); 
+        var FileBox = React.createClass({ 
+        	getInitialState: function() {
+    			return {data: []};
+  			},
+  			componentDidMount: function() {
+				var drop = document.getElementById('drop');
+				var component = this;
+		        drop.ondragover = function(e) {
+		            e.preventDefault();
+		            this.classList.add('over');
+		        };
+
+		        drop.ondragout = drop.ondragleave = drop.ondragexit = function(e) {
+		            this.classList.remove('over');
+		        };
+
+		        drop.ondrop = function(e) {
+		            e.preventDefault();
+		            this.classList.remove('over');
+
+		            var dt = e.dataTransfer;
+		            var files = dt.files;
+		            var file = files[0];
+		            var reader = new FileReader();
+		            reader.onload = function(e) {
+		                var arrayBuffer = reader.result;
+		                var intbuffer = new Uint8Array(arrayBuffer);
+		                var file = window.jsMiBody.jsMiBodyFile;
+		                var data = new file(intbuffer)
+		                component.setState({data: data.users});
+		            }
+		            reader.readAsArrayBuffer(file);
+
+		        };
+        	},
+        	render: function() { 
+		        var userNodes = this.state.data.map(function (user) {
+			      return (
+			        <UserBox user={user}>
+			        	{user.userSlot}
+			        </UserBox>
+			      );
+			    });        		
+				 
+				 return (
+				      <div className="userList">
+				        {userNodes}
+				      </div>
+				    );
+        		
         	} 
-    	}); 
-    	
+    	});
+
+    	var UserBox = React.createClass({
+    		render: function() { 
+
+				 var readingNodes = this.props.user.readings.map(function (reading) {
+				      return (
+				        <ReadingRow data={reading}/>
+				      );
+				    });        		
+				 
+				 return (
+				 	<div>
+					 	<p>{this.props.children}</p>
+					    <div className="readingList">
+					        {readingNodes}
+					    </div>
+				      </div>
+				    ); 
+        	} 
+    	});
+
+    	var ReadingRow = React.createClass({
+    		render : function () {
+    			return (
+    				<p>
+    				{this.props.data.weight}
+    				</p>
+    				);
+    		}
+    	});
+
     	React.render(
-        <CommentBox />, document.getElementById('output') );
+        <FileBox />, document.getElementById('output') );
     </script>
 </body>
